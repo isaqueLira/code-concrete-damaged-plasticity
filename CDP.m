@@ -1,26 +1,29 @@
-%%% ABERTURA %%%
+%% ABERTURA
+clc % limpeza do prompt de comando
+clear all % limpeza das variáveis armazenadas
+close all % fecha todas figuras
 fprintf('Seja Bem-vindo \n');
 fprintf('Matlab \n');
 fprintf('Programção dos Parâmetros de Dano do Concreto para o Concrete Damaged Plasticity Model (CDP) \n');
 fprintf('Baseado em: Behnam et al. (2018), Alfarah et al. (2017), Genikomsou e Polak (2015), FIB (2010), Birtel e Mark (2006), Krätzig e Pölling (2004), Hordijk (1992)\n\n');
 
-%%% PLASTICIDADE %%%
+%% PLASTICIDADE
 
-% fprintf('        -PARAMETROS DE PLASTICIDADE- \n\n');
-% Phi=input('Entre com o  Angulo de Dilatação em graus: ');
-% Varepsilon=input('Entre com o valor da Excentricidade da superficie plástica (e): ');
-% fb0_fc0=input('Entre com a relação entre a resistencia a compressão do concreto biaxial e unixial (fb0/fc0): ');
-% Kc=input('Entre com a razão entre a tensão desviadora em compressão e tração uniaxial (Kc): ');
-% Viscosidade=input('Entre com a Viscosidade (u): ');
+fprintf('        -PARAMETROS DE PLASTICIDADE- \n\n');
+Phi=input('Entre com o  Angulo de Dilatação em graus: ');
+Varepsilon=input('Entre com o valor da Excentricidade da superficie plástica (e): ');
+fb0_fc0=input('Entre com a relação entre a resistencia a compressão do concreto biaxial e unixial (fb0/fc0): ');
+Kc=input('Entre com a razão entre a tensão desviadora em compressão e tração uniaxial (Kc): ');
+Viscosidade=input('Entre com a Viscosidade (u): ');
 
-%%% ENTRADA DE DADOS %%%
+%% ENTRADA DE DADOS
 
 fprintf('\n\n        -PARAMETROS DE DANO- \n\n');
 fck=input('Entre com o valor do fck do concreto em MPa: ');
 leq=input('Entre com o comprimento equivalente da malha de MEF em mm: ');
 b=input('Entre com a relação entre a deformação plastica de compressão e deformação de esmagamento: ');
 
-%%% EQUAÇÕES INICIAIS %%%
+%% EQUAÇÕES INICIAIS
 
 fcm=fck+8; % Reistencia à Compressão Máxima
 fc0=0.4*fcm;% Resistencia à Compressão do Limite Linear
@@ -28,13 +31,14 @@ ftm=0.3016*fck^(2/3); % Resistencia à Tração Máxima
 ft0=ftm; % Resistencia à Tração do Limite Linear
 Eci=10000*((fcm)^(1/3)); % Módulo de Elasticidade Tangente
 E0=round((10000*((fcm)^(1/3)))*(0.8+(0.2*(fcm/88))),2); % Módulo de Elasticidade Não Danificado
+Poisson=0.2; % Coeficiente de Poisson do Concreto
 Gf=(0.073*(fcm^0.18)); % Energia de Fratura
 Gch=((fcm/ftm)^2)*Gf; % Energia de Esmagamento
 gt=round(Gf/leq,3); % Energia dissipada pelo dano na tração por unidade de volume
 gc=round(Gch/leq,3); % Energia dissipada pelo dano na compressão por unidade de volume
-wc=5.14*(Gf/ftm); % Abertura Crítica de Fissura (Behnam et al. (2018))
+wcc c=5.14*(Gf/ftm); % Abertura Crítica de Fissura (Behnam et al. (2018))
 
-%%% INTERATIVIDADE NA COMPRESSÃO %%%
+%% INTERATIVIDADE NA COMPRESSÃO %%%
 
 ecel=fc0/E0; % Deformação elástica não danificada máxima na Compressão
 ecm=(2*fcm)/E0; % Deformação total referente a Tensão de Pico
@@ -103,7 +107,7 @@ end
 b1_mean=mean(b1,'omitnan');
 end
 
-%%% BLOCO 1 - COMPRESSÃO %%%
+%% BLOCO 1 - COMPRESSÃO
 
 b=b1_mean;
 yc=((pi^2)*fcm*ecm)/(2*(((Gch/leq)-(0.5*fcm)*((ecm*(1-b))+(b*(fcm/E0))))^2)); % Eq. 28 de Alfarah et al. (2017) 
@@ -120,7 +124,7 @@ for i=1:length(ec1)
     end
 end
 
-%%% BLOCO 2 - COMPRESSÃO %%%
+%% BLOCO 2 - COMPRESSÃO
 
 ec2=linspace(ecm,ecu,50); % Deformação total de compressão do trecho não-linear
 sigmac2=zeros(length(ec2),1)'; % Tensão de compressão do trecho não-linear
@@ -149,7 +153,7 @@ for i=1:length(ec2)
     end
 end
 
-%%% BLOCO 1 - TRAÇÃO %%%
+%% BLOCO 1 - TRAÇÃO
 
 etm=ftm/E0; % Deformação referente a tensão máxima 
 etu=etm+(wc/leq); % Deformação limite do amolecimento (Genikomsou e Polak (2015))
@@ -165,7 +169,7 @@ for i=1:length(et1) % Loop para a elaboração das curvas tensãoxdeformação e dano
     end
 end
 
-%%% BLOCO 2 - TRAÇÃO %%%
+%% BLOCO 2 - TRAÇÃO
 
 et2=linspace(etm,etu,50); % Deformação de Tração
 sigmat2=zeros(length(et2),1)'; % Tensão de Tração
@@ -181,7 +185,7 @@ for i=1:length(et2) % Loop para a elaboração das curvas tensãoxdeformação e dano
     b3(i)=etpl(i)/etck(i);
 end
 
-%%% Gráficos %%%
+%% Gráficos
 
 figure(1); % Gráficos de tensãoxdeformação na Compressão e Tração
 subplot(2,1,1)
@@ -239,14 +243,44 @@ ylabel('Dano em Compressão','FontSize',14)
 title('Gráfico Dano x Deformação Inelastica de Compressão do Concreto','FontSize',16)
 axis([0 etu 0 1])
 
-%%% RESULTADOS %%%
+%% RESULTADOS
 
-fprintf('\n\nResultados para Compressão Dois cliques em RC no Workspace. \n\n');
-fprintf('Resultados para Tração Dois cliques em RT_Fissura e/ou RT_Deformação no Workspace. \n\n');
-fprintf('Resultados em Gráficos nas Janelas que foram Aberta. \n\n');
+RC=[sigmac2; ech2]; % Resposta TensãoxDeformação Inelastica na Compressão
+RT=[sigmat2; etck]; % Resposta TensãoxDeformação Inelastica na Tração
+DC=[dc2; ech2]; % Resposta DanoxDeformação Inelastica na Compressão
+DT=[dt; etck]; % Resposta DanoxDeformação Inelastica na Compressão
+
+arq=fopen('CDP.txt','wt'); % Abertura do Arquivo de Texto
+
+fprintf(arq,strcat('*Material, name=CONCRETO_C26\n')); % Chama o input Material e o Nome do Material no Abaqus (Deve ser igual ao nome utilizado no próprio programa
+
+fprintf(arq,'*Density\n'); % Chama a Densidade
+fprintf(arq,'2.4e-09\n'); % Entra com a Densidade    
+
+fprintf(arq,'*Elastic\n'); % Chama os parametros de Elasticidade
+fprintf(arq,'%s, ',E0); % Entra com o Módulo de Elasticidade
+fprintf(arq,'0.2\n'); % Entra com o Coeficiente de Poisson
+
+fprintf(arq,'*Concrete Damaged Plasticity\n'); % Chama os parametros de Plasticidade
+fprintf(arq,'%s, ',Phi); % Entra com o Angulo de Dilatação
+fprintf(arq,'%s, ',Varepsilon); % Entra com a Excentricidade
+fprintf(arq,'%s, ',fb0_fc0); % Entra com o fb0/fc0
+fprintf(arq,'%s, ',Kc); % Entra com Kc 
+fprintf(arq,'%s\n',Viscosidade); % Entra com a viscosidade
+
+fprintf(arq,'*Concrete Compression Hardening\n'); % Chama os parametros do Comportamento do Concreto na Compressão 
+fprintf(arq,'%4f, %4f\n',RC); % Entra com os dados de Tensão e Deformação Inelastica na Compressão
+
+fprintf(arq,'*Concrete Tension Stiffening\n'); % Chama os parametros do Comportamento do Concreto na Tração
+fprintf(arq,'%4f, %4f\n',RT); % Entra com os dados de Tensão e Deformação Inelastica na Tração
+
+fprintf(arq,'*Concrete Compression Damage\n'); % Chama os parametros do Comportamento do Dano do Concreto na Compressão
+fprintf(arq,'%4f, %4f\n',DC); % Entra com os dados de Dano e Deformação Inelastica na Compressão
+
+fprintf(arq,'*Concrete Tension Damage\n'); % Chama os parametros do Comportamento do Dano do Concreto na Tração
+fprintf(arq,'%4f, %4f\n',DT); % Entra com os dados de Dano e Deformação Inelastica na Tração
+
+%% FIM
 fprintf('Fim da Programação! \n\n');
-RC=[sigmac2' ech2' dc2' ech2' ecpl2']; % Resposta na Compressão
-xlswrite('CDP.xlsx',sigmac2',1,'A2:A52')
-RT=[sigmat2' etck' dt' etck' etpl']; % Resposta na Tração
-
-%%%FIM%%%
+fprintf('\n\nResultados no Arquivo de Texto Criado na mesma Pasta destino do Arquivo .m. \n\n');
+fprintf('Resultados em Gráficos nas Janelas que foram Aberta. \n\n');
